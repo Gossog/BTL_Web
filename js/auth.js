@@ -51,6 +51,17 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
+      const newUser = {
+        id: Date.now(),
+        name,
+        email,
+        password,
+        phone,
+        address,
+        avatar: "images/avatar-placeholder.png", // Avatar mặc định
+        addresses: [], // Mảng địa chỉ (có thể dùng để lưu nhiều địa chỉ sau này)
+      };
+
       users.push(newUser);
       localStorage.setItem("users", JSON.stringify(users));
       localStorage.setItem("currentUser", JSON.stringify(newUser));
@@ -59,37 +70,12 @@ document.addEventListener("DOMContentLoaded", function () {
       window.location.href = "index.html";
     });
   }
+
+  // Kiểm tra trạng thái đăng nhập
+  checkLoginStatus();
 });
-// Thêm hàm xử lý đăng xuất với xác nhận
-function handleLogout() {
-  const customConfirm = document.getElementById("customConfirm");
-  const confirmCancel = document.querySelector(".confirm-btn-cancel");
-  const confirmOk = document.querySelector(".confirm-btn-ok");
 
-  // Hiển thị hộp thoại xác nhận tùy chỉnh
-  customConfirm.style.display = "flex";
-
-  // Xử lý khi nhấn hủy
-  confirmCancel.addEventListener("click", function () {
-    customConfirm.style.display = "none";
-  });
-
-  // Xử lý khi nhấn đăng xuất
-  confirmOk.addEventListener("click", function () {
-    localStorage.removeItem("currentUser");
-    customConfirm.style.display = "none";
-    window.location.href = "index.html";
-  });
-
-  // Đóng khi click bên ngoài
-  customConfirm.addEventListener("click", function (e) {
-    if (e.target === customConfirm) {
-      customConfirm.style.display = "none";
-    }
-  });
-}
-
-// Cập nhật phần kiểm tra trạng thái đăng nhập trong main.js
+// Hàm kiểm tra trạng thái đăng nhập và cập nhật navbar
 function checkLoginStatus() {
   const user = JSON.parse(localStorage.getItem("currentUser"));
   const loginLink = document.querySelector('nav ul li a[href="login.html"]');
@@ -98,10 +84,10 @@ function checkLoginStatus() {
   );
 
   if (user) {
-    if (loginLink) loginLink.textContent = user.name;
+    if (loginLink) loginLink.style.display = "none";
     if (registerLink) registerLink.textContent = "Đăng xuất";
 
-    // Thêm sự kiện đăng xuất với xác nhận
+    // Gán sự kiện đăng xuất
     if (registerLink) {
       registerLink.href = "#";
       registerLink.addEventListener("click", function (e) {
@@ -111,14 +97,41 @@ function checkLoginStatus() {
     }
   }
 }
-// Trong phần đăng ký, cập nhật tạo user mới
-const newUser = {
-  id: Date.now(),
-  name,
-  email,
-  password,
-  phone,
-  address,
-  avatar: "images/avatar-placeholder.png", // Thêm avatar mặc định
-  addresses: [], // Thêm mảng địa chỉ
-};
+
+// Hàm xử lý đăng xuất với xác nhận
+function handleLogout() {
+  const customConfirm = document.getElementById("customConfirm");
+  const confirmCancel = document.querySelector(".confirm-btn-cancel");
+  const confirmOk = document.querySelector(".confirm-btn-ok");
+
+  if (!customConfirm || !confirmCancel || !confirmOk) {
+    // Nếu chưa có HTML confirm custom thì xác nhận đơn giản
+    if (confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
+      localStorage.removeItem("currentUser");
+      window.location.href = "index.html";
+    }
+    return;
+  }
+
+  // Hiển thị hộp thoại xác nhận tùy chỉnh
+  customConfirm.style.display = "flex";
+
+  // Hủy
+  confirmCancel.addEventListener("click", function () {
+    customConfirm.style.display = "none";
+  });
+
+  // Xác nhận đăng xuất
+  confirmOk.addEventListener("click", function () {
+    localStorage.removeItem("currentUser");
+    customConfirm.style.display = "none";
+    window.location.href = "index.html";
+  });
+
+  // Đóng nếu click ra ngoài
+  customConfirm.addEventListener("click", function (e) {
+    if (e.target === customConfirm) {
+      customConfirm.style.display = "none";
+    }
+  });
+}

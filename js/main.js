@@ -1,4 +1,3 @@
-// Hiển thị sản phẩm nổi bật trên trang chủ
 document.addEventListener("DOMContentLoaded", function () {
   // Giả lập dữ liệu sản phẩm
   const featuredProducts = [
@@ -39,18 +38,46 @@ document.addEventListener("DOMContentLoaded", function () {
       const productElement = document.createElement("div");
       productElement.className = "product-card";
       productElement.innerHTML = `
-                <div class="product-image">
-                    <img src="${product.image}" alt="${product.name}">
-                </div>
-                <div class="product-info">
-                    <h3>${product.name}</h3>
-                    <p class="product-price">${product.price.toLocaleString()}đ</p>
-                    <button class="btn add-to-cart" data-id="${
-                      product.id
-                    }">Thêm vào giỏ</button>
-                </div>
-            `;
+        <div class="product-image">
+          <img src="${product.image}" alt="${product.name}">
+        </div>
+        <div class="product-info">
+          <h3>${product.name}</h3>
+          <p class="product-price">${product.price.toLocaleString()}đ</p>
+          <button class="btn add-to-cart" data-id="${
+            product.id
+          }">Thêm vào giỏ</button>
+        </div>
+      `;
       productsContainer.appendChild(productElement);
+    });
+
+    // Gắn sự kiện cho nút Thêm vào giỏ
+    document.querySelectorAll(".add-to-cart").forEach((button) => {
+      button.addEventListener("click", function () {
+        const user = JSON.parse(localStorage.getItem("currentUser"));
+        if (!user) {
+          alert("Vui lòng đăng nhập trước khi thêm vào giỏ hàng.");
+          return;
+        }
+
+        const productId = parseInt(this.dataset.id);
+        const product = featuredProducts.find((p) => p.id === productId);
+
+        if (!product) return;
+
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+        const existingItem = cart.find((item) => item.id === productId);
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          cart.push({ ...product, quantity: 1 });
+        }
+
+        localStorage.setItem("cart", JSON.stringify(cart));
+        alert(`Đã thêm "${product.name}" vào giỏ hàng!`);
+      });
     });
   }
 
@@ -58,26 +85,22 @@ document.addEventListener("DOMContentLoaded", function () {
   checkLoginStatus();
 });
 
-// Kiểm tra trạng thái đăng nhập
 function checkLoginStatus() {
   const user = JSON.parse(localStorage.getItem("currentUser"));
-  const loginLink = document.querySelector('nav ul li a[href="login.html"]');
-  const registerLink = document.querySelector(
-    'nav ul li a[href="register.html"]'
-  );
+  const loginLink = document.getElementById("loginLink");
+  const registerLink = document.getElementById("registerLink");
+  const logoutLink = document.getElementById("logoutLink");
 
   if (user) {
     if (loginLink) {
       loginLink.textContent = user.name;
-      loginLink.href = "profile.html"; // Có thể thêm trang profile sau
+      loginLink.href = "profile.html";
     }
-    if (registerLink) registerLink.textContent = "Đăng xuất";
-
-    if (registerLink) {
-      // Thay đổi href thành # để không bị chuyển trang, và thêm sự kiện click
-      registerLink.removeAttribute("href");
-      registerLink.addEventListener("click", function (e) {
-        e.preventDefault(); // Ngừng hành động mặc định
+    if (registerLink) registerLink.style.display = "none";
+    if (logoutLink) {
+      logoutLink.style.display = "inline";
+      logoutLink.addEventListener("click", function (e) {
+        e.preventDefault();
         handleLogout();
       });
     }
@@ -89,19 +112,13 @@ function checkLoginStatus() {
     if (registerLink) {
       registerLink.textContent = "Đăng ký";
       registerLink.href = "register.html";
-      registerLink.removeEventListener("click", handleLogout);
+      registerLink.style.display = "inline";
     }
+    if (logoutLink) logoutLink.style.display = "none";
   }
 }
 
-// Hàm xử lý đăng xuất
 function handleLogout() {
-  // Xóa thông tin người dùng trong localStorage
   localStorage.removeItem("currentUser");
-
-  // Cập nhật lại giao diện sau khi đăng xuất
-  checkLoginStatus();
-
-  // Chuyển hướng đến trang đăng nhập hoặc trang chủ
   window.location.href = "login.html";
 }
